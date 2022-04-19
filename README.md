@@ -1,5 +1,5 @@
-# FRSH (Frsh Required Serve Hot)
-FRSH is a simple livereload sever.
+# FRSH (FRSH Required! Serve Hot!)
+FRSH is a minimal livereload sever.
 
 ## Requirement
 ```
