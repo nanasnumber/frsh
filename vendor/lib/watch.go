@@ -1,3 +1,7 @@
+/*
+* File watcher with callback pattern
+* */
+
 package lib
 
 import (

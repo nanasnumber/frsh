@@ -12,26 +12,17 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func fc(p string) string {
-
-	file, err := os.ReadFile(p)
-
-	if err != nil {
-		// fmt.Println(err)
-	}
-
-	fileContent := string(file)
-
-	return fileContent
+func setPort() string {
+	return "8080"
 }
 
 func wcClient() string {
-	return `
+	tpl := `
 		<script>
 			(() => {
 
 				const livereload = () => {
-					const c = new WebSocket("ws://localhost:8080/livereload");
+					const c = new WebSocket("ws://localhost:%s/livereload");
 
 					c.onopen =  (e) => {
 						console.info('Livereload Connected');
@@ -63,34 +54,27 @@ func wcClient() string {
 			})();
 		</script>
 	`
+	port := setPort()
+	script := fmt.Sprintf(tpl, port)
+	return script
 }
 
-func MIMEType(p string) string {
-	ext := filepath.Ext(p)
+func fc(p string) string {
+	file, err := os.ReadFile(p)
 
-	switch ext {
-	case "":
-		return "text/html"
-	case ".html":
-		return "text/html"
-	case ".css":
-		return "text/css"
-	case ".js":
-		return "text/javascript"
-	case ".jpg":
-		return "image/jpeg"
-	case ".svg":
-		return "image/svg+xml"
-	case ".ico":
-		return "image/x-icon"
-	default:
-		return "application/octet-stream"
+	if err != nil {
+		fmt.Println(p + " not exist")
 	}
+
+	fileContent := string(file)
+
+	return fileContent
 }
 
 func fileResponse(w http.ResponseWriter, r *http.Request) {
 	filePath := "." + r.URL.Path
-	mimeType := MIMEType(filePath)
+	m := lib.MIMEType
+	mimeType := m(filePath)
 
 	if mimeType == "text/html" {
 		filePath := "." + r.URL.Path + "/index.html"
@@ -104,95 +88,76 @@ func fileResponse(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mimeType)
 		w.Write([]byte(content))
 	}
-
 }
 
-func main() {
+func watchAndReload() {
 
-	go func() {
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 
-		var upgrader = websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
+	http.HandleFunc("/livereload", func(w http.ResponseWriter, r *http.Request) {
+
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			// fmt.Println(err)
 		}
 
-		http.HandleFunc("/livereload", func(w http.ResponseWriter, r *http.Request) {
+		var wg sync.WaitGroup
 
-			c, err := upgrader.Upgrade(w, r, nil)
+		fileErr := filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				// fmt.Println(err)
+				return err
 			}
 
+			ext := filepath.Ext(path)
+
 			/*
-			* TODO: not fully sure how wait group supposed to work yet, need to study this one
+			* exclude temp file and directory for watcher
 			* */
-			var wg sync.WaitGroup
+			if ext != ".swp" && ext != "" {
 
-			fileErr := filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
+				wg.Add(1)
 
-				ext := filepath.Ext(path)
+				go func() {
 
-				/*
-				* exclude temp file and directory for watcher
-				* */
-				if ext != ".swp" && ext != "" {
+					defer wg.Done()
 
-					wg.Add(1)
+					w := lib.Watch
+					w(path, func() {
 
-					go func() {
-						defer wg.Done()
-						w := lib.Watch
-						w(path, func() {
-
+						for {
+							msgType, _, err := c.ReadMessage()
 							if err != nil {
 								// fmt.Println(err)
 							}
 
-							for {
-
-								msgType, msg, err := c.ReadMessage()
-								if err != nil {
-									// fmt.Println(err)
-								}
-
-								// fmt.Println(string(msg))
-
-								if string(msg) == "pong" {
-									// fmt.Println("client responded")
-								}
-
-								err = c.WriteMessage(msgType, []byte("ping"))
-								if err != nil {
-									return
-								}
-
+							err = c.WriteMessage(msgType, []byte("ping"))
+							if err != nil {
+								return
 							}
-						})
-					}()
-				}
+						}
+					})
 
-				return nil
-			})
-
-			wg.Wait()
-
-			if fileErr != nil {
-				// fmt.Println(fileErr)
+				}()
 			}
+
+			return nil
 		})
 
-	}()
+		wg.Wait()
 
-	go func() {
-		port := "8080"
-		http.HandleFunc("/", fileResponse)
-		fmt.Println("Listening to port:" + port)
-		http.ListenAndServe(":"+port, nil)
-	}()
+		if fileErr != nil {
+			// fmt.Println(fileErr)
+		}
+	})
+}
 
-	select {}
-
+func main() {
+	watchAndReload()
+	port := setPort()
+	http.HandleFunc("/", fileResponse)
+	fmt.Println("Listening to port:" + port)
+	http.ListenAndServe(":"+port, nil)
 }
