@@ -15,7 +15,7 @@ func Watch(p string, fn func()) error {
 	initStat, err := os.Stat(path)
 
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 	}
 
 	for {
@@ -26,6 +26,7 @@ func Watch(p string, fn func()) error {
 
 		if stat != nil {
 			if stat.Size() != initStat.Size() || stat.ModTime() != initStat.ModTime() {
+				fmt.Println("===============")
 				fmt.Println(path + " changed")
 				fn()
 				Watch(path, fn)

@@ -17,7 +17,7 @@ func fc(p string) string {
 	file, err := os.ReadFile(p)
 
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 	}
 
 	fileContent := string(file)
@@ -120,7 +120,7 @@ func main() {
 
 			c, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
-				fmt.Println(err)
+				// fmt.Println(err)
 			}
 
 			/*
@@ -148,20 +148,20 @@ func main() {
 						w(path, func() {
 
 							if err != nil {
-								fmt.Println(err)
+								// fmt.Println(err)
 							}
 
 							for {
 
 								msgType, msg, err := c.ReadMessage()
 								if err != nil {
-									fmt.Println(err)
+									// fmt.Println(err)
 								}
 
-								fmt.Println(string(msg))
+								// fmt.Println(string(msg))
 
 								if string(msg) == "pong" {
-									fmt.Println("client responded")
+									// fmt.Println("client responded")
 								}
 
 								err = c.WriteMessage(msgType, []byte("ping"))
@@ -180,15 +180,17 @@ func main() {
 			wg.Wait()
 
 			if fileErr != nil {
-				fmt.Println(fileErr)
+				// fmt.Println(fileErr)
 			}
 		})
 
 	}()
 
 	go func() {
+		port := "8080"
 		http.HandleFunc("/", fileResponse)
-		http.ListenAndServe(":8080", nil)
+		fmt.Println("Listening to port:" + port)
+		http.ListenAndServe(":"+port, nil)
 	}()
 
 	select {}
