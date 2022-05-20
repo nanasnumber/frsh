@@ -16,70 +16,18 @@ func setPort() string {
 	return "8080"
 }
 
-func wcClient() string {
-	tpl := `
-		<script>
-			(() => {
-
-				const livereload = () => {
-					const c = new WebSocket("ws://localhost:%s/livereload");
-
-					c.onopen =  (e) => {
-						console.info('Livereload Connected');
-						c.send('pong');
-					};
-
-					c.onmessage = (e) => {
-						if (e.data === "ping") {
-							location.reload();
-						}
-					};
-
-					c.onclose = (e) => {
-
-						console.log(e)
-
-						if (e.type === 'close') {
-							c.close()
-						}
-
-						c.onopen =  () => {
-							console.info('Livereload Connected');
-							c.send('pong');
-						};
-					}
-				};
-
-				livereload();
-			})();
-		</script>
-	`
-	port := setPort()
-	script := fmt.Sprintf(tpl, port)
-	return script
-}
-
-func fc(p string) string {
-	file, err := os.ReadFile(p)
-
-	if err != nil {
-		fmt.Println(p + " not exist")
-	}
-
-	fileContent := string(file)
-
-	return fileContent
-}
-
 func fileResponse(w http.ResponseWriter, r *http.Request) {
 	filePath := "." + r.URL.Path
 	m := lib.MIMEType
+	fc := lib.FileContent
+	wc := lib.WebsocketsClient
+	p := setPort()
 	mimeType := m(filePath)
 
 	if mimeType == "text/html" {
 		filePath := "." + r.URL.Path + "/index.html"
 		contentOrigin := fc(filePath)
-		content := strings.Replace(contentOrigin, "</head>", wcClient()+"</head>", -1)
+		content := strings.Replace(contentOrigin, "</head>", wc(p)+"</head>", -1)
 		w.Header().Set("Content-Type", mimeType)
 		w.Write([]byte(content))
 	} else {
@@ -115,6 +63,7 @@ func watchAndReload() {
 
 			/*
 			* exclude temp file and directory for watcher
+			* [TODO]: Need a method to check file extentions to ignore reload
 			* */
 			if ext != ".swp" && ext != "" {
 
