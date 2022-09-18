@@ -24,18 +24,21 @@ func fileResponse(w http.ResponseWriter, r *http.Request) {
 	p := setPort()
 	mimeType := m(filePath)
 
+	var content string
+
+	// Inject websockets script if mime type is HTML
 	if mimeType == "text/html" {
 		filePath := "." + r.URL.Path + "/index.html"
 		contentOrigin := fc(filePath)
-		content := strings.Replace(contentOrigin, "</head>", wc(p)+"</head>", -1)
-		w.Header().Set("Content-Type", mimeType)
-		w.Write([]byte(content))
+		content = strings.Replace(contentOrigin, "</head>", wc(p)+"</head>", -1)
 	} else {
 		filePath := "." + r.URL.Path
-		content := fc(filePath)
-		w.Header().Set("Content-Type", mimeType)
-		w.Write([]byte(content))
+		content = fc(filePath)
 	}
+
+	w.Header().Set("Content-Type", mimeType)
+	w.Write([]byte(content))
+
 }
 
 func watchAndReload() {
