@@ -14,7 +14,7 @@ func WebsocketsClient(p string) string {
 					const c = new WebSocket("ws://localhost:%s/livereload");
 
 					c.onopen =  (e) => {
-						console.info('Livereload Connected');
+						console.info('FRSH: Livereload Connected');
 						c.send('pong');
 					};
 
@@ -29,11 +29,12 @@ func WebsocketsClient(p string) string {
 						console.log(e)
 
 						if (e.type === 'close') {
+							console.info('FRSH: Livereload Disconnected');
 							c.close()
 						}
 
 						c.onopen =  () => {
-							console.info('Livereload Connected');
+							console.info('FRSH: Livereload Connected');
 							c.send('pong');
 						};
 					}
