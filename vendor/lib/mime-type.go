@@ -4,29 +4,24 @@
 
 package lib
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 func MIMEType(p string) string {
+
 	ext := filepath.Ext(p)
 
-	switch ext {
-	case "":
-		return "text/html"
-	case ".html":
-		return "text/html"
-	case ".css":
-		return "text/css"
-	case ".json":
-		return "application/json"
-	case ".js":
-		return "text/javascript"
-	case ".jpg":
-		return "image/jpeg"
-	case ".svg":
-		return "image/svg+xml"
-	case ".ico":
-		return "image/x-icon"
-	default:
-		return "application/octet-stream"
-	}
+	mimeMap := make(map[string]string)
+
+	mimeMap[""] = "text/html"
+	mimeMap[".html"] = "text/html"
+	mimeMap[".css"] = "text/css"
+	mimeMap[".js"] = "text/javascript"
+	mimeMap[".json"] = "application/json"
+	mimeMap[".svg"] = "image/svg+xml"
+	mimeMap[".jpg"] = "image/jpeg"
+	mimeMap[".ico"] = "image/x-icon"
+
+	return mimeMap[ext]
 }
