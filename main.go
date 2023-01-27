@@ -26,8 +26,8 @@ func fileResponse(w http.ResponseWriter, r *http.Request) {
 
 	if mimeType == "text/html" {
 
-		//TODO:
-		//just a quick patch to fix for recgnize *.html as directory
+		//NOTE:
+		//just a quick patch to fix for recognize *.html as directory
 		//instead of file
 		ext := filepath.Ext(r.URL.Path)
 		if ext == ".html" {
@@ -40,6 +40,8 @@ func fileResponse(w http.ResponseWriter, r *http.Request) {
 		content := strings.Replace(contentOrigin, "</head>", wc(p)+"</head>", -1)
 		w.Header().Set("Content-Type", mimeType)
 		w.Write([]byte(content))
+	} else if fc(filePath) == "404" {
+		http.NotFound(w, r)
 	} else {
 		filePath := "." + r.URL.Path
 		content := fc(filePath)
