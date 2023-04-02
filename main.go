@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"lib"
+	"frsh/pkg/lib"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -57,6 +57,8 @@ func watchAndReload() {
 		WriteBufferSize: 1024,
 	}
 
+	var wg sync.WaitGroup
+
 	http.HandleFunc("/livereload", func(w http.ResponseWriter, r *http.Request) {
 
 		c, err := upgrader.Upgrade(w, r, nil)
@@ -64,9 +66,9 @@ func watchAndReload() {
 			// fmt.Println(err)
 		}
 
-		var wg sync.WaitGroup
+		// var wg sync.WaitGroup
 
-		fileErr := filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
+		fileWalkCallback := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
@@ -105,7 +107,9 @@ func watchAndReload() {
 			}
 
 			return nil
-		})
+		}
+
+		fileErr := filepath.Walk("./", fileWalkCallback)
 
 		wg.Wait()
 
