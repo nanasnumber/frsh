@@ -6,7 +6,7 @@ package lib
 
 import (
 	"fmt"
-	"frsh/pkg/io"
+	"frsh/pkg/util"
 	"os"
 	"time"
 )
@@ -18,7 +18,7 @@ func Watch(p string, fn func()) error {
 		fmt.Println(err)
 	}
 
-	initCheckSum := io.CheckSum(path)
+	initCheckSum := util.CheckSum(path)
 
 	for {
 		curStat, err := os.Stat(path)
@@ -26,7 +26,7 @@ func Watch(p string, fn func()) error {
 			fmt.Println(err)
 		}
 
-		curCheckSum := io.CheckSum(path)
+		curCheckSum := util.CheckSum(path)
 
 		if curCheckSum != initCheckSum || curStat.ModTime() != initStat.ModTime() {
 			fmt.Println("===============")

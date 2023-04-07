@@ -66,45 +66,39 @@ func watchAndReload() {
 			// fmt.Println(err)
 		}
 
-		// var wg sync.WaitGroup
-
 		fileWalkCallback := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			ext := filepath.Ext(path)
-
-			/*
-			* exclude temp file and directory for watcher
-			* [TODO]: Need a method to check file extentions to ignore reload
-			* */
-			if ext != ".swp" && ext != "" {
-
-				wg.Add(1)
-
-				go func() {
-
-					defer wg.Done()
-
-					w := lib.Watch
-					w(path, func() {
-
-						for {
-							msgType, _, err := c.ReadMessage()
-							if err != nil {
-								// fmt.Println(err)
-							}
-
-							err = c.WriteMessage(msgType, []byte("ping"))
-							if err != nil {
-								return
-							}
-						}
-					})
-
-				}()
+			ignore := lib.FileIgnore
+			if ignore(path) {
+				return nil
 			}
+
+			wg.Add(1)
+
+			go func() {
+
+				defer wg.Done()
+
+				w := lib.Watch
+				w(path, func() {
+
+					for {
+						msgType, _, err := c.ReadMessage()
+						if err != nil {
+							// fmt.Println(err)
+						}
+
+						err = c.WriteMessage(msgType, []byte("ping"))
+						if err != nil {
+							return
+						}
+					}
+				})
+
+			}()
 
 			return nil
 		}
