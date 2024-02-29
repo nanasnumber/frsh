@@ -71,8 +71,13 @@ func watchAndReload() {
 				return err
 			}
 
-			ignore := lib.FileIgnore
-			if ignore(path) {
+			ignoreDir := lib.DirIgnore
+			if ignoreDir(path) {
+				return nil
+			}
+
+			ignoreFile := lib.FileIgnore
+			if ignoreFile(path) {
 				return nil
 			}
 
@@ -108,7 +113,7 @@ func watchAndReload() {
 		wg.Wait()
 
 		if fileErr != nil {
-			// fmt.Println(fileErr)
+			fmt.Println(fileErr)
 		}
 	})
 }
