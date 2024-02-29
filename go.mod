@@ -1,4 +1,4 @@
-module vendor/lib
+module frsh
 
 go 1.16
 
