@@ -105,6 +105,8 @@ func watchAndReload() {
 
 			}()
 
+			<-make(chan struct{})
+
 			return nil
 		}
 
