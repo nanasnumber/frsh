@@ -35,7 +35,7 @@ func Watch(p string, fn func()) error {
 			Watch(path, fn)
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 
 	}
 
